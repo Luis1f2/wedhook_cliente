@@ -18,7 +18,6 @@ func PullRequestEvent(ctx *gin.Context) {
 	log.Printf("Webhook recibido: \nEvento=%s, \nDeliveryID=%s", eventType, deliveryID)
 
 	payload, err := ctx.GetRawData()
-
 	if err != nil {
 		log.Printf("Error al leer el cuerpo de la solicitud: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error al leer el cuerpo de la solicitud"})
@@ -26,26 +25,31 @@ func PullRequestEvent(ctx *gin.Context) {
 	}
 
 	var statusCode int
+	var msg string
 
 	switch eventType {
 	case "pull_request":
-		msg := application.ProcessPullRequest(payload)
+		msg = application.ProcessPullRequest(payload)
+	case "star":
+		msg = application.ProcessStarEvent(payload)
+	default:
+		ctx.JSON(http.StatusOK, gin.H{"status": "Evento no soportado"})
+		return
+	}
 
-		if msg == "ERROR" {
-			statusCode = 500
-		} else {
-			statusCode = SendMessageToDiscord(msg)
-		}
+	if msg == "ERROR" {
+		statusCode = http.StatusInternalServerError
+	} else {
+		statusCode = application.SendMessageToDiscord(msg)
 	}
 
 	switch statusCode {
-	case 200:
-		ctx.JSON(http.StatusOK, gin.H{"status": "Evento Pull Request recibido y procesado"})
-	case 500:
-		log.Printf("Error al deserializar el payload del pull request: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error al procesar el payload del pull request"})
+	case http.StatusOK:
+		ctx.JSON(http.StatusOK, gin.H{"status": "Evento recibido y procesado"})
+	case http.StatusInternalServerError:
+		log.Printf("Error al procesar el evento")
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Error al procesar el evento"})
 	default:
 		ctx.JSON(http.StatusOK, gin.H{"status": "Peticion procesada"})
 	}
-
 }

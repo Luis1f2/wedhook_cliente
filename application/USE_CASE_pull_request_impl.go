@@ -24,21 +24,6 @@ func ProcessPullRequest(payload []byte) string {
 		log.Printf("Pull Request Action no es Closed: %s", eventPayload.Action)
 	}
 
-	/*log.Printf(
-	"Evento Pull Request recibido: \nAcción=%s, \nPR Título='%s', \nRama Base='%s', \nRepositorio='%s'",
-	eventPayload.Action, eventPayload.PullRequest.Title, eventPayload.PullRequest.Base.Ref, eventPayload.Repository.FullName)]*/
-
-	/*mainBranch := "develop"
-
-	if eventPayload.PullRequest.Base.Ref == mainBranch {
-		log.Printf("¡Pull Request a la rama '%s' detectado en el repositorio '%s'!", mainBranch, eventPayload.Repository.FullName)
-		fmt.Printf("Pull Request detectado en la rama %s!\n", mainBranch)
-	} else {
-		log.Printf(
-			"Pull Request detectado, pero no dirigido a la rama '%s'. Rama base: '%s'",
-			mainBranch, eventPayload.PullRequest.Base.Ref)
-	}*/
-
 	base := eventPayload.PullRequest.Base.Ref
 	head := eventPayload.PullRequest.Head.Ref
 	html_url := eventPayload.PullRequest.HTML_URL
